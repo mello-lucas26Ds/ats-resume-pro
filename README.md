@@ -1,102 +1,114 @@
-# Match de Currículo ATS (Pareto 20/80 & Anti-AI Slop Engine)
+# ATS Resume Matcher (Pareto 20/80 & Anti-AI Slop Audit Engine)
 
-Sistema moderno e neutro de triagem técnica preditiva, auditoria de compatibilidade com **Applicant Tracking Systems (ATS)** e diagnóstico de tom de escrita humana vs. clichês de inteligência artificial (Motor das 6 Vertentes), com suporte bilíngue (**Português 🇧🇷 / Inglês 🇺🇸**).
+[![Visitors](https://api.visitorbadge.io/api/visitors?path=mello-lucas26Ds%2Fats-resume-pro&label=TOTAL%20VISITORS&countColor=%2310b981&style=flat-square)](https://github.com/mello-lucas26Ds/ats-resume-pro)
+[![Repo Views](https://komarev.com/ghpvc/?username=mello-lucas26Ds&repo=ats-resume-pro&color=10b981&style=flat-square&label=LIVE+VIEWS)](https://github.com/mello-lucas26Ds/ats-resume-pro)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![Angular](https://img.shields.io/badge/Angular-21.0-dd0031.svg?logo=angular)](https://angular.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1-38bdf8.svg?logo=tailwindcss)](https://tailwindcss.com/)
+[![Express](https://img.shields.io/badge/Express-5.1-000000.svg?logo=express)](https://expressjs.com/)
+[![Google Gemini API](https://img.shields.io/badge/Gemini_API-2.5_Flash-8e75ff.svg?logo=google)](https://ai.google.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+> 🇧🇷 **[Versão em Português](README.pt-BR.md)** | **English Version**
+
+A production-grade, privacy-first technical screening system, **Applicant Tracking System (ATS)** compatibility auditor, and **6-Pillar Anti-AI Slop Engine** with native bilingual support (**English 🇺🇸 / Portuguese 🇧🇷**).
 
 ---
 
-## 👨‍💻 Autor & Conexões
+## 👨‍💻 Author & Engineering
 
-* **Criado por:** Lucas Mello
+* **Creator & Author:** Lucas Mello
 * **GitHub:** [https://github.com/mello-lucas26Ds](https://github.com/mello-lucas26Ds)
 * **LinkedIn:** [https://www.linkedin.com/in/mello-lucas26/](https://www.linkedin.com/in/mello-lucas26/)
-* **Repositório Oficial:** [https://github.com/mello-lucas26Ds/match-curriculo-ats](https://github.com/mello-lucas26Ds/match-curriculo-ats)
+* **Official Repository:** [https://github.com/mello-lucas26Ds/match-curriculo-ats](https://github.com/mello-lucas26Ds/match-curriculo-ats)
 
 ---
 
-## 💡 Visão Geral & Filosofia
+## 💡 Core Philosophy & Value Proposition
 
-O sistema **não reescreve o currículo inventando experiências ou métricas fictícias**. Seu objetivo é atuar como um auditor sênior que:
-1. **Identifica os 20% da vaga (Pareto)** que concentram 80% do peso da triagem dos recrutadores.
-2. **Audita o currículo em busca de evidências factuais**, apontando lacunas reais e oportunidades de quantificação com números que o próprio candidato alcançou.
-3. **Purga o linguajar artificial de IA** usando as 6 vertentes anti-slop, orientando o uso de verbos ativos no passado em 1ª pessoa:
-   * **Português (PT-BR):** *Configurei, Construí, Analisei, Criei, Transformei, Carreguei, Usei, Implementei, Otimizei*.
-   * **Inglês (EN-US):** *Built, Configured, Architected, Implemented, Analyzed, Created, Transformed, Loaded, Engineered, Optimized*.
-4. **Gerador e Adaptador de Bullets Bilíngue (Mad Libs):** Permite converter e estruturar sentenças de impacto tanto em Português quanto em Inglês para aplicações no Brasil ou no exterior.
-5. **Protege a privacidade do usuário** com processamento 100% em memória volátil de sessão, sem banco de dados ou retenção de dados pessoais (Conformidade total com a LGPD).
+The platform **never hallucinates or fabricates fake experiences or metrics**. It operates as a senior technical hiring auditor:
+
+1. **Pareto 20/80 Principle:** Isolates the top 20% must-have job requirements that account for 80% of recruiter & ATS filtering weight.
+2. **Factual Evidence Audit:** Audits the resume against real-world evidence, pinpointing critical technical gaps and highlighting where the candidate should insert their verified numbers.
+3. **6-Pillar Anti-Slop Audit:** Detects and eliminates robotic AI clichés, enforcing active past-tense first-person action verbs:
+   * **English (EN-US):** *Built, Configured, Architected, Implemented, Analyzed, Created, Transformed, Loaded, Engineered, Optimized, Structured*.
+   * **Portuguese (PT-BR):** *Configurei, Construí, Analisei, Criei, Transformei, Carreguei, Usei, Implementei, Otimizei, Estruturei*.
+4. **Actionable Bullet Point Templates:** Provides ready-to-copy 1st-person active sentences with explicit metric placeholders (`[+X% / Y users / Z ms]`) to immediately paste into the resume.
+5. **Interactive Anti-Slop Scaffold:** A customizable Mad-Libs style generator to construct bullet points following the formula: `[1st Person Active Verb + Exact Technology + Quantifiable Impact]`.
+6. **Privacy by Design (LGPD/GDPR):** 100% ephemeral volatile session memory processing. Zero database persistence, zero personal data retention.
 
 ---
 
-## 🏛️ Arquitetura do Sistema
+## 🏛️ System Architecture
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                             ARQUITETURA DO SISTEMA                          │
+│                             SYSTEM ARCHITECTURE                             │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                  ┌────────────────────┴────────────────────┐
                  ▼                                         ▼
-   [ CLIENTE / FRONTEND ANGULAR 21 ]          [ SERVIDOR EXPRESS / SERVERLESS ]
-   • Formulário Dual-Pane (Vaga vs CV)        • Headers de Segurança (CSP, HSTS)
-   • Toggle de Idioma (PT-BR / EN-US)         • Rate Limiter em Memória (Anti-DoS)
-   • Limitador de Caracteres (15k / 20k)      • Sanitização e Validação de Payload
-   • Cooldown Anti-Flood (6s)                 • Motor de Matching ATS (TOP 20%)
-   • Dashboard Reativo (Signals & Tailwind)   • Auditoria de 6 Vertentes Anti-Slop
-   • Scaffold Interativo (Mad Libs Bilíngue)  • Suíte de 8 Testes Automatizados
-   • Modal de Termos LGPD e Privacidade       • Fallback Heurístico Instantâneo
+   [ CLIENT / ANGULAR 21 FRONTEND ]           [ SERVER / EXPRESS & SERVERLESS ]
+   • Dual-Pane Form (Job vs Resume)           • Security Headers (CSP, HSTS)
+   • Language Switcher (PT-BR / EN-US)        • In-Memory IP Rate Limiter
+   • Strict Character Enforcer (15k / 20k)    • Payload Sanitization & Validation
+   • Anti-Flood Cooldown Timer (6s)           • ATS Matching Engine (TOP 20%)
+   • Reactive Signals & Tailwind UI           • 6-Pillar Anti-Slop Tone Engine
+   • Interactive Bullet Scaffold              • Automated 8-Test Suite Runner
+   • Privacy Terms & LGPD Modal               • Deterministic Offline Fallback
                  │                                         │
                  └────────────────────┬────────────────────┘
                                       ▼
-                        [ LLM / MOTOR HEURÍSTICO ]
-                        • Schema JSON Determinístico
-                        • Fallback Instantâneo Offline
+                        [ LLM / HEURISTIC ENGINE ]
+                        • Structured JSON Schema
+                        • Zero-Latency Offline Fallback
 ```
 
 ---
 
-## 🛡️ Segurança & Conformidade LGPD
+## 🛡️ Security & Privacy Compliance
 
-* **Zero Retenção de Dados:** Nenhum dado pessoal, currículo ou texto de vaga é persistido em banco de dados ou disco.
-* **Segurança de Cabeçalhos (Helmet Pattern):** `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Strict-Transport-Security`.
-* **Rate Limiting:** Proteção de taxa por IP nas rotas de API para impedir ataques de negação de serviço.
-* **Limites Rígidos de Caracteres:** Máximo de 15.000 caracteres para a vaga e 20.000 para o currículo.
-* **LGPD (Lei 13.709/2018):** Atendimento estrito aos princípios da finalidade, minimização e transparência (Art. 18).
-
----
-
-## 📋 Pré-requisitos
-
-* **Node.js**: Versão `>= 20.x`
-* **NPM**: Versão `>= 10.x`
-* **Chave de API Gemini (Opcional):** Pode ser obtida gratuitamente em [Google AI Studio](https://aistudio.google.com/app/apikey). Se não for fornecida, o sistema opera automaticamente com o **motor heurístico de contingência**.
+* **Zero Data Retention:** No candidate resume text or job description is persisted to disk or external databases.
+* **Hardened Security Headers:** `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Strict-Transport-Security`.
+* **In-Memory Rate Limiting:** IP-based rate limiting on all API routes to prevent DoS attacks.
+* **Strict Payload Caps:** Max 15,000 characters for job descriptions and 20,000 characters for resumes.
+* **LGPD / GDPR Compliance:** Strictly adheres to purpose limitation, data minimization, and transparency principles.
 
 ---
 
-## 🚀 Instalação e Execução Local
+## 📋 Prerequisites
 
-### 1. Clonar o Repositório
+* **Node.js**: Version `>= 20.x`
+* **NPM**: Version `>= 10.x`
+* **Gemini API Key (Optional):** Available from [Google AI Studio](https://aistudio.google.com/app/apikey). If not provided, the engine runs seamlessly on the built-in deterministic heuristic engine.
+
+---
+
+## 🚀 Local Installation & Setup
+
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/mello-lucas26Ds/match-curriculo-ats.git
 cd match-curriculo-ats
 ```
 
-### 2. Instalar Dependências
+### 2. Install Dependencies
 ```bash
 npm install
 ```
 
-### 3. Configurar Variáveis de Ambiente
-Copie o arquivo de exemplo e preencha conforme necessário:
+### 3. Setup Environment Variables
 ```bash
 cp .env.example .env
 ```
 
-### 4. Executar em Desenvolvimento
+### 4. Run Development Server
 ```bash
 npm run dev
 ```
-Acesse a aplicação em: `http://localhost:3000`
+Open your browser at: `http://localhost:3000`
 
-### 5. Executar Linter e Testes
+### 5. Run Linter & Production Build
 ```bash
 npm run lint
 npm run build
@@ -104,23 +116,22 @@ npm run build
 
 ---
 
-## ☁️ Deploy na Vercel
+## ☁️ Deployment on Vercel
 
-### Método 1: Deploy via Vercel CLI
+### Method 1: Vercel CLI
 ```bash
 npm install -g vercel
 vercel login
 vercel --prod
 ```
 
-### Método 2: Deploy via Painel da Vercel (GitHub Integration)
-1. Conecte o repositório `mello-lucas26Ds/match-curriculo-ats` na Vercel.
-2. Em **Environment Variables**, adicione `GEMINI_API_KEY` (opcional) e `NODE_ENV=production`.
-3. Clique em **Deploy**.
+### Method 2: Vercel Web Dashboard (GitHub Integration)
+1. Import repository `mello-lucas26Ds/match-curriculo-ats` into Vercel.
+2. In **Environment Variables**, add `GEMINI_API_KEY` (optional) and `NODE_ENV=production`.
+3. Click **Deploy**.
 
 ---
 
-## 📄 Licença
+## 📄 License
 
-Este projeto está licenciado sob a licença [MIT](LICENSE).
-Criado por [Lucas Mello](https://www.linkedin.com/in/mello-lucas26/).
+Distributed under the [MIT](LICENSE) License. Crafted with precision by [Lucas Mello](https://www.linkedin.com/in/mello-lucas26/).

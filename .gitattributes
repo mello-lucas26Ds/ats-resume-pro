@@ -1,0 +1,5 @@
+# GitHub Linguist Language Overrides
+*.ts linguist-language=TypeScript
+*.html linguist-language=HTML
+*.css linguist-language=CSS
+*.json linguist-language=JSON

@@ -22,6 +22,18 @@ import { AtsService } from '../../services/ats.service';
                 <span class="text-[10px] sm:text-[11px] font-medium tracking-wide uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200 font-mono">
                   Pareto 20/80
                 </span>
+
+                <!-- Live Realtime Telemetry Counter Pill -->
+                <div class="hidden md:flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-zinc-100/90 border border-zinc-200 text-[11px] font-mono text-zinc-700 shadow-2xs">
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span title="Total de análises executadas">
+                    <strong class="text-zinc-900 font-bold">{{ atsService.totalAudits() }}</strong> {{ atsService.uiLanguage() === 'pt' ? 'análises' : 'audits' }}
+                  </span>
+                  <span class="text-zinc-300">•</span>
+                  <span title="Total de acessos à plataforma">
+                    <strong class="text-zinc-900 font-bold">{{ atsService.totalVisits() }}</strong> {{ atsService.uiLanguage() === 'pt' ? 'visitas' : 'visits' }}
+                  </span>
+                </div>
               </div>
               <p class="text-[11px] text-zinc-500 hidden sm:block">
                 {{ atsService.uiLanguage() === 'pt' ? 'Auditoria algorítmica, veracidade e diagnóstico de triagem' : 'ATS algorithm audit, factual veracity & triage scoring' }}
@@ -112,6 +124,14 @@ import { AtsService } from '../../services/ats.service';
               <mat-icon class="text-sm">verified</mat-icon>
               <span>{{ atsService.uiLanguage() === 'pt' ? 'Testes (8)' : 'Tests (8)' }}</span>
             </button>
+          </div>
+
+          <!-- Mobile Live Telemetry Pill -->
+          <div class="flex sm:hidden items-center justify-center gap-2 py-1 px-2.5 rounded-lg bg-zinc-100 border border-zinc-200 text-[10px] font-mono text-zinc-700 w-full">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span><strong>{{ atsService.totalAudits() }}</strong> {{ atsService.uiLanguage() === 'pt' ? 'análises' : 'audits' }}</span>
+            <span class="text-zinc-300">•</span>
+            <span><strong>{{ atsService.totalVisits() }}</strong> {{ atsService.uiLanguage() === 'pt' ? 'visitas' : 'visits' }}</span>
           </div>
 
           <!-- Desktop LGPD button -->

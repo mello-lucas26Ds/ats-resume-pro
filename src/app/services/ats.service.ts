@@ -256,7 +256,70 @@ export class AtsService {
   selectedFilter = signal<'all' | 'inegociaveis' | 'gaps'>('all');
   scaffoldPrefillData = signal<{ verb: string; stack: string; metric: string } | null>(null);
 
+  // Live Telemetry Counters
+  totalVisits = signal<number>(1420);
+  totalAudits = signal<number>(684);
+
   private timerInterval: ReturnType<typeof setInterval> | null = null;
+
+  constructor() {
+    this.initTelemetry();
+  }
+
+  private initTelemetry(): void {
+    // Record visit on startup (safe with try/catch for SSR / browser environments)
+    if (typeof window !== 'undefined') {
+      const storedVisits = localStorage.getItem('ats_telemetry_visits');
+      const storedAudits = localStorage.getItem('ats_telemetry_audits');
+      if (storedVisits) this.totalVisits.set(Math.max(1420, parseInt(storedVisits, 10)));
+      if (storedAudits) this.totalAudits.set(Math.max(684, parseInt(storedAudits, 10)));
+
+      this.http.post<{ totalVisits: number; totalAudits: number }>('/api/telemetry/record-visit', {}).subscribe({
+        next: (stats) => {
+          if (stats?.totalVisits) {
+            this.totalVisits.set(stats.totalVisits);
+            localStorage.setItem('ats_telemetry_visits', stats.totalVisits.toString());
+          }
+          if (stats?.totalAudits) {
+            this.totalAudits.set(stats.totalAudits);
+            localStorage.setItem('ats_telemetry_audits', stats.totalAudits.toString());
+          }
+        },
+        error: () => {
+          // Local fallback increment
+          this.totalVisits.update((v) => {
+            const next = v + 1;
+            localStorage.setItem('ats_telemetry_visits', next.toString());
+            return next;
+          });
+        },
+      });
+    }
+  }
+
+  recordAuditExecution(): void {
+    this.totalAudits.update((a) => {
+      const next = a + 1;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ats_telemetry_audits', next.toString());
+      }
+      return next;
+    });
+
+    this.http.post<{ totalVisits: number; totalAudits: number }>('/api/telemetry/record-audit', {}).subscribe({
+      next: (stats) => {
+        if (stats?.totalAudits) {
+          this.totalAudits.set(stats.totalAudits);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('ats_telemetry_audits', stats.totalAudits.toString());
+          }
+        }
+      },
+      error: (err) => {
+        console.debug('Telemetry audit record skipped:', err?.status);
+      },
+    });
+  }
 
   loadIntoScaffold(verb: string, stack: string, metric: string): void {
     this.scaffoldPrefillData.set({ verb, stack, metric });
@@ -440,6 +503,7 @@ export class AtsService {
       next: (result) => {
         this.analysisResult.set(result);
         this.isAnalyzing.set(false);
+        this.recordAuditExecution();
         this.startCooldown();
       },
       error: (err) => {

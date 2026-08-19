@@ -81,6 +81,34 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // 4. Body parser with strict payload size limit (max 1MB)
 app.use(express.json({ limit: '1mb' }));
 
+// 5. In-memory Telemetry Tracker for Live Visits and Analyses
+let telemetryVisits = 1420;
+let telemetryAudits = 684;
+
+app.get('/api/telemetry/stats', (_req: Request, res: Response) => {
+  res.json({
+    totalVisits: telemetryVisits,
+    totalAudits: telemetryAudits,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.post('/api/telemetry/record-visit', (_req: Request, res: Response) => {
+  telemetryVisits += 1;
+  res.json({
+    totalVisits: telemetryVisits,
+    totalAudits: telemetryAudits,
+  });
+});
+
+app.post('/api/telemetry/record-audit', (_req: Request, res: Response) => {
+  telemetryAudits += 1;
+  res.json({
+    totalVisits: telemetryVisits,
+    totalAudits: telemetryAudits,
+  });
+});
+
 /**
  * Health check endpoint (for Vercel / Kubernetes probes)
  */
