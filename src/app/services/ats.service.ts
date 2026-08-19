@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AtsAnalysisResult, AnalyzePayload } from '../types/ats.types';
+import { runHeuristicFallback } from '../utils/heuristic-engine';
 
 export const MAX_JOB_CHARS = 15000;
 export const MAX_RESUME_CHARS = 20000;
@@ -507,14 +508,22 @@ export class AtsService {
         this.startCooldown();
       },
       error: (err) => {
-        console.error('Erro na análise:', err);
-        this.errorMessage.set(err?.error?.error || (
-          this.uiLanguage() === 'en'
-            ? 'Error processing ATS analysis. Please verify your input and try again.'
-            : 'Erro ao processar análise. Verifique os dados e tente novamente.'
-        ));
-        this.isAnalyzing.set(false);
-        this.startCooldown();
+        console.warn('API backend indisponível ou em modo estático. Executando motor heurístico local:', err?.status);
+        try {
+          const fallbackResult = runHeuristicFallback(job, resume, this.uiLanguage() === 'en');
+          this.analysisResult.set(fallbackResult);
+          this.recordAuditExecution();
+        } catch (fallbackErr) {
+          console.error('Erro no fallback heurístico local:', fallbackErr);
+          this.errorMessage.set(
+            this.uiLanguage() === 'en'
+              ? 'Error processing ATS analysis. Please verify your input and try again.'
+              : 'Erro ao processar análise. Verifique os dados e tente novamente.'
+          );
+        } finally {
+          this.isAnalyzing.set(false);
+          this.startCooldown();
+        }
       },
     });
   }

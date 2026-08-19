@@ -2,7 +2,13 @@ export type RequirementImportance = 'Inegociável' | 'Importante' | 'Diferencial
 export type MatchStatus = 'ATENDE' | 'PARCIAL' | 'NAO_ATENDE';
 export type GapSeverity = 'Crítico' | 'Moderado' | 'Pequeno';
 export type FitLevel = 'Forte' | 'Moderado' | 'Baixo';
-export type AiToneVerdict = 'Humano e Direto' | 'Sinais Leves de IA' | 'Altamente Artificial / Clichê de IA';
+export type AiToneVerdict =
+  | 'Humano e Direto'
+  | 'Sinais Leves de IA'
+  | 'Altamente Artificial / Clichê de IA'
+  | 'Human & Direct'
+  | 'Mild AI Clichés'
+  | 'Heavy AI Buzzwords';
 export type AiVertenteSeverity = 'Limpo' | 'Atenção' | 'Crítico';
 
 export interface Top20Requirement {
@@ -99,7 +105,12 @@ export interface TestCaseResult {
     | 'BULLET_AUDIT'
     | 'KEYWORD_MATRIX'
     | 'SENIORITY_EVALUATION'
-    | 'AI_TONE_DETECTION';
+    | 'AI_TONE_DETECTION'
+    | 'ACTION_BULLETS'
+    | 'AI_TONE_6_VERTENTES'
+    | 'BILINGUAL_SUPPORT'
+    | 'KEYWORD_DENSITY'
+    | 'PRIVACY_COMPLIANCE';
   description: string;
   passed: boolean;
   executionTimeMs: number;
