@@ -1,0 +1,62 @@
+# ===================================================================
+# .gitignore - Match de Currículo ATS (Padrão Profissional VS Code / GitHub)
+# ===================================================================
+
+# 1. Variáveis de Ambiente & Segredos Locais
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# 2. Arquivos de Build, Distribuição e Cache
+/dist
+/dist-ssr
+/tmp
+/out-tsc
+/bazel-out
+/.angular/cache
+.sass-cache/
+.vercel
+.turbo
+
+# 3. Gerenciadores de Pacotes & Dependências
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+bun.lock
+
+# 4. Logs e Cobertura de Testes
+logs
+*.log
+/coverage
+testem.log
+/typings
+__screenshots__/
+
+# 5. IDEs, Editores e Arquivos do Sistema Operacional
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# 6. Arquivos e Metadados Específicos de Ambientes de Sandbox / Nuvem
+metadata.json
+assets/.aistudio/
+.aistudio/

@@ -1,0 +1,146 @@
+<div class="min-h-screen bg-zinc-100/60 text-zinc-900 flex flex-col font-sans selection:bg-zinc-900 selection:text-white">
+  
+  <!-- Global Header -->
+  <app-header (openLgpd)="openLgpdModal()" />
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Tab 1: Matcher & Diagnostic View -->
+    @if (atsService.activeTab() === 'matcher') {
+      <div class="space-y-8 animate-fade-in">
+        
+        <!-- Input Section -->
+        <app-input-workspace />
+
+        <!-- Diagnostic Results (Displayed when analysis is complete) -->
+        @if (atsService.analysisResult(); as result) {
+          <div class="space-y-8 pt-4 border-t border-zinc-200">
+            
+            <!-- Result Controls / Export Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-zinc-200 shadow-2xs">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-semibold text-zinc-900 tracking-tight">Diagnóstico ATS & Auditoria de Tom Concluídos</span>
+                <span class="text-[11px] text-zinc-500 font-mono">({{ result.timestamp | date:'shortTime' }})</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button
+                  id="copy-full-diagnostic-btn"
+                  type="button"
+                  (click)="exportDiagnosticReport()"
+                  class="px-3.5 py-1.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-xs font-medium text-zinc-800 transition-colors flex items-center gap-1.5 shadow-2xs">
+                  <mat-icon class="text-xs">{{ copiedReport() ? 'check' : 'content_copy' }}</mat-icon>
+                  <span>{{ copiedReport() ? 'Relatório Copiado!' : 'Copiar Diagnóstico Completo' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Score and High Level Summary -->
+            <app-score-gauge [result]="result" />
+
+            <!-- 6 Vertentes AI Tone Audit (Contexta.ai Engine) -->
+            <app-ai-tone-audit [audit]="result.aiToneAudit" />
+
+            <!-- Top 20% Pareto Requirements -->
+            <app-top20-requirements [requirements]="result.top20Requirements" />
+
+            <!-- Keywords Matrix -->
+            <app-keyword-matrix [keywords]="result.keywords" />
+
+            <!-- Bullet Formula & Section Audit -->
+            <app-bullet-audit [recommendations]="result.sectionRecommendations" />
+
+            <!-- Interactive Scaffold Builder (Mad Libs in PT-BR and EN-US) -->
+            <app-guided-scaffold />
+
+            <!-- Gaps & Strategic Questions -->
+            <app-gaps-panel [gaps]="result.gapsAnalysis" [questions]="result.strategicQuestions" />
+
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- Tab 2: Test Suite Runner View -->
+    @if (atsService.activeTab() === 'test-suite') {
+      <div class="space-y-8 animate-fade-in">
+        <app-test-suite />
+      </div>
+    }
+
+  </main>
+
+  <!-- Footer with Author Credits & Links -->
+  <footer class="border-t border-zinc-200 bg-white py-8 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+      
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-600">
+        
+        <!-- Left: Project Identity & Author -->
+        <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
+          <span class="font-semibold text-zinc-900">Match de Currículo ATS</span>
+          <span>•</span>
+          <span>Criado por</span>
+          <a
+            id="author-linkedin-link"
+            [href]="atsService.linkedinUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-bold text-zinc-900 hover:text-blue-600 transition-colors inline-flex items-center gap-1">
+            <span>{{ atsService.authorName }}</span>
+            <mat-icon class="text-[14px]">open_in_new</mat-icon>
+          </a>
+        </div>
+
+        <!-- Center / Right: Social Links -->
+        <div class="flex items-center gap-3">
+          <a
+            id="github-profile-link"
+            [href]="atsService.githubUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="px-3 py-1.5 rounded-xl border border-zinc-200 hover:border-zinc-400 bg-zinc-50 hover:bg-zinc-100 text-zinc-800 text-xs font-medium transition-all flex items-center gap-1.5 shadow-2xs">
+            <mat-icon class="text-sm">code</mat-icon>
+            <span>GitHub (@mello-lucas26Ds)</span>
+          </a>
+
+          <a
+            id="linkedin-profile-link"
+            [href]="atsService.linkedinUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="px-3 py-1.5 rounded-xl border border-blue-200 hover:border-blue-400 bg-blue-50/50 hover:bg-blue-50 text-blue-900 text-xs font-medium transition-all flex items-center gap-1.5 shadow-2xs">
+            <mat-icon class="text-sm text-blue-700">work</mat-icon>
+            <span>LinkedIn</span>
+          </a>
+        </div>
+
+        <!-- Privacy Trigger -->
+        <div class="flex items-center gap-3">
+          <button
+            id="open-lgpd-footer-btn"
+            type="button"
+            (click)="openLgpdModal()"
+            class="text-xs text-emerald-800 hover:text-emerald-950 font-medium underline cursor-pointer">
+            Privacidade & Termos LGPD
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Legal / Ethics Note -->
+      <div class="pt-4 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-zinc-400">
+        <span>© 2026 Match de Currículo ATS. Código aberto sob Licença MIT.</span>
+        <span class="font-mono">Regra de Ouro: Diagnóstico verídico sem alucinações de LLM.</span>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- LGPD Privacy Modal Component -->
+  <app-lgpd-modal />
+
+</div>
