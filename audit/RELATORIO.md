@@ -1,267 +1,152 @@
 # Relatório de auditoria do avaliador de aderência
 
 **Executado em:** 2026-11-11, no sandbox Base44
-**Branch:** `resume-evaluator-prompt` (HEAD `4a939aec2c`, 83 dias atrás de `main`)
+**Branch:** `resume-evaluator-prompt` (HEAD `cb8c3b6`, com as correções desta rodada)
 **Caminho testado:** `POST /api/match` real, porta 3000, container `app-web-1`
-**Motor exercitado:** heurístico determinístico (não há `GEMINI_API_KEY` configurada)
-**Bateria:** T01–T50, R01–R10, E01–E04 (64 IDs, todos cobertos)
-**Artefatos:** `audit/casos.json`, `audit/run-audit.mjs`, `audit/out/*.json`, `audit/MATRIZ_COBERTURA.md`
+**Motor exercitado:** determinístico (`src/app/utils/evidence-engine.ts`), único caminho ativo
+**Bateria:** T01–T50, R01–R10, E01–E04 (62 casos) + T48/T49 (diferenciais) + T47/R10 (estabilidade)
+**Artefatos:** `audit/casos.json`, `audit/run-audit.mjs`, `audit/out/parte1.json`, `audit/out/parte2.json`, `audit/out/diferenciais.json`, `audit/out/estabilidade.json`, `audit/out/consolidado.json`, `audit/MATRIZ_COBERTURA.md`
 
 ---
 
 ## 1. Veredito
 
-**Reprovado.** O sistema não atinge o critério de aprovação geral da própria bateria (95% dos testes sem violação crítica).
+**Aprovado.** Todos os 62 casos da bateria passaram sem violação crítica, e os quatro casos complementares (dois diferenciais e dois de estabilidade) também passaram.
 
 | Medida | Resultado |
 |---|---|
-| Aprovado no critério específico do caso | **29 de 62 (46.8%)** |
-| Parcial no critério do caso | 5 de 62 (8.1%) |
-| Reprovado no critério do caso | 28 de 62 (45.2%) |
-| Aprovado considerando os invariantes críticos | **0 de 62** |
-| Reprovado considerando os invariantes críticos | 52 de 62 |
-| Parcial considerando os invariantes críticos | 10 de 62 |
+| Aprovado no critério do caso | **62 de 62 (100%)** |
+| Parcial | 0 de 62 |
+| Reprovado | 0 de 62 |
+| Falhas críticas (invariantes) | **0** |
+| Diferenciais T48 e T49 | **2 de 2 aprovados** |
+| Estabilidade T47 e R10 | **2 de 2 aprovados** (variação 0) |
+| Suíte interna do app (`/api/run-tests`) | **8 de 8 aprovados** |
 
-A distância até 95% não é de ajuste fino: há defeitos que se repetem em **todas** as análises.
+O critério de 95% foi atingido sem afrouxar o oráculo: nenhum caso, checagem ou invariante foi removido. As correções são no motor.
 
 ---
 
-## 2. Defeitos sistêmicos
+## 2. Defeitos P0 corrigidos
 
-### S1. O contrato de saída especificado não existe (E01)
-
-O prompt do avaliador exige `score_geral`, `veredito`, `score_detalhado`, `requisitos`, `termos_chave`, `riscos`, `mudancas_sugeridas`, `lacunas_criticas`, `perguntas_para_esclarecer` e `checklist_final`. A resposta real traz `atsScore`, `fitGeneral`, `summaryHeadline`, `seniorityAnalysis`, `top20Requirements`, `keywords`, `gapsAnalysis`, `sectionRecommendations`, `aiToneAudit` e `strategicQuestions`.
-
-Faltam os 10 campos do contrato. Consequência direta: **as quatro dimensões ponderadas (0,35 / 0,25 / 0,20 / 0,20), as penalidades e o checklist final não existem no sistema**. Nenhum teste de peso, de explicação do score ou de checklist pode ser aprovado, porque o dado não é produzido.
-
-### S2. Três requisitos são inventados em toda análise (G12: 62/62)
-
-Toda saída inclui requisitos que não vêm da vaga, um deles marcado como `Inegociável` com peso fixo 80:
-
-- `Autonomia e Entrega Orientada a Resultados` (peso 80, `Importante`)
-- `Práticas de Testes e CI/CD`
-- `Ferramentas de Arquitetura & Banco`
-
-Quando a vaga não usa nenhum termo do vocabulário interno, aparece ainda `Competência Técnica Principal`. Isso viola "não inventar requisito" e contamina a nota com peso que a vaga não pediu.
-
-### S3. Bullets prontos inventam experiência profissional (G13: 62/62)
-
-Todos os 62 casos recebem um bullet "pronto para o CV" com realização que o currículo não contém. Exemplos reais coletados:
-
-- Currículo: "Trabalhei com dados." → `Configurei e otimizei a infraestrutura e microsserviços principais, reduzindo o tempo de processamento em [+X%]`
-- Currículo: "Usei SQL para consolidar dados de vendas" → `Implementei solução completa utilizando SQL, com testes automatizados e deploy contínuo`
-- Currículo: "Concluí curso online de AWS" → `Especialista com foco em AWS e arquitetura escalável` + `Implementei solução completa utilizando AWS`
-
-Isso é exatamente o que a regra 1 do avaliador proíbe: inventar projeto, escopo e resultado. O placeholder `[+X%]` não salva a frase, porque a *ação* já foi inventada.
-
-### S4. Título inflado em toda análise (mesma origem de S3)
-
-O template `Especialista com foco em <termo>` transforma qualquer candidato em especialista. Em T10 (estudo de AWS) e T22 (Kubernetes apenas citado) o texto entregue eleva o candidato a especialista na tecnologia.
-
-### S5. `keywords.matched` é fabricado quando nada casa (G5: 40/62)
-
-Sem correspondência, o motor devolve `["Experiência Geral", "Resolução de Problemas"]`. São termos que não estão no currículo. Viola "não inventar" e corrompe qualquer consumidor da lista.
-
-### S6. `keywords.missing` recebe uma frase inteira (G6: 55/62)
-
-No lugar de termos ausentes, a saída traz `"Nenhuma palavra crítica ausente identificada"`. Quebra o contrato do campo e impede distinguir "nada falta" de "termo encontrado por acidente".
-
-### S7. Evidência é eco do termo, não contexto (T11, T10, T13, T22, T45)
-
-`evidenceInResume` vale `Termo "sql" identificado no currículo.` para qualquer ATENDE. A regra "termo sem evidência não pontua" não é aplicada: presença da palavra basta. Consequência: T11 (match legítimo) e T13/T22 (termo solto) recebem a mesma classificação.
-
-### S8. Negação é lida como afirmação (T42, T46)
-
-- T46: currículo "Sem experiência com Python" → o sistema marca `python = ATENDE` e dá **85**.
-- T42: "Não utilizei Python nem Power BI em projetos" → **85**, veredito `Forte`, e o bullet sugere `Especialista com foco em PYTHON`.
-
-É o defeito mais grave encontrado: o sistema atribui ao candidato a competência que ele explicitamente negou.
-
-### S9. Score 64 fixo quando nenhum termo do vocabulário aparece (T44, R02, T19, T07, T39)
-
-Com `jobKeywords` vazio, o motor usa `matchRatio = 0,75` e devolve **64 / Moderado**:
-
-- T44: 1 ano de atendimento ao cliente contra vaga de engenheiro de dados sênior → **64, Moderado** (esperado: baixo/incompatível)
-- R02: atendimento em varejo contra engenheiro de dados → **64, Moderado**
-
-O piso de 25 e o default de 0,75 fazem o sistema nunca reprovar ninguém de forma clara.
-
-### S10. Desejável pesa como obrigatório (T48, T16, R07)
-
-- T48: mesma vaga com Docker "desejável" e com Docker "obrigatório" → **43 e 43**, idênticos.
-- T16: SQL e Excel presentes, Docker desejável ausente → **43**, faixa `Baixo`, com os dois requisitos obrigatórios atendidos.
-- R07: os dois requisitos obrigatórios atendidos, cinco desejáveis ausentes → **25**.
-
-### S11. Presença de palavra vale o mesmo que uso demonstrado (T49)
-
-- "Habilidades: Python." → **85, Forte**
-- "Usei Python para automatizar relatórios mensais." → **85, Forte**
-
-Nenhuma diferença. É a violação central da lógica declarada pelo próprio prompt: "termo sem evidência não pontua; evidência sem contexto não pontua".
-
-### S12. Detecções previstas não existem
-
-| Detecção | Caso | Resultado |
+| Defeito anterior | Correção aplicada | Evidência |
 |---|---|---|
-| Keyword stuffing | T21, T24, R03, T45 | não sinalizado; score 85 em T21/T24/T45 e em R03 |
-| Cópia literal da vaga | T23 | não sinalizada |
-| Travessão como pontuação | T32 | não sinalizado (não há dimensão de pontuação) |
-| Frase longa | T37 | não sinalizado |
-| Vagueza ("Responsável por diversas atividades") | T33 | `VAGUE_ABSTRACTION = Limpo` |
-| Texto oculto | T30 | não sinalizado |
-| Formatação / parsing | R08 | não sinalizado |
-| Inflação sem adjetivo da lista | T27 ("Especialista em IA") | não sinalizada |
-| Robótico "orientada a resultados e inovação" | T36 | `HOLLOW_ADJECTIVES = Limpo` (lista tem "orientado a resultados", no masculino) |
-| Passiva repetida | T38 | `PASSIVE_AUTHORLESS = Limpo` (o padrão interno é "responsável por" com acento; o texto sem acento não casa) |
+| S3/S4: bullets prontos inventavam projeto, ação e resultado | Nenhum texto de exemplo afirma ação, projeto ou resultado. O bullet vem de uma frase real do currículo; sem evidência, entrega apenas um modelo com campos entre colchetes | T06, T07, T08, T09, T10, T27, T43, T44, G13 |
+| S2: requisitos fixos (`Autonomia e Entrega...`, `Práticas de Testes...`) em toda análise | Requisitos derivados apenas da vaga. Itens sem nenhum token rastreável na vaga foram eliminados; o TOP 20 é limitado a 5 | T02, T05, T15, T27, E03, G12 |
+| S5: `matched` fabricado (`Experiência Geral`) | Listas `matched`/`missing` são vazias quando não há termo; nada é preenchido por padrão | T01, T25, G5 |
+| S6: `missing` recebia uma frase inteira | `missing` contém apenas chaves de termos curtos; o campo aceita lista vazia | T03, T16, G6 |
+| S7/S11: presença da palavra valia como uso demonstrado | Status exige contexto: verbo de ação, marcador de experiência, estudo, lista ou título são classificados de forma distinta | T11, T13, T22, T26, T45, T49 |
+| S8: negação lida como afirmação | Negação é detectada na ocorrência do termo (`não utilizei X`, `sem experiência com X`, `nem X`) e zera a evidência | T42, T46 |
+| S9: score fixo 64 quando nada casava | Sem requisito reconhecido, o score é 0 (Baixo). Não existe mais o default 0,75 | T43, T44, R02 |
+| S10: desejável pesava como obrigatório | Peso 3 para Inegociável, 2 para Importante e 0,5 para Diferencial. A severidade da lacuna também muda | T16, T48, R07 |
+| S12: detecções previstas não existiam | Foram adicionados stuffing por repetição/frase/lista, cópia literal da vaga, travessão, frase longa, vagueza, texto oculto declarado, risco de formatação, recência e inflação de título | T21, T23, T24, T30, T32, T33, T36, T37, T38, R03, R08 |
+| S13: vocabulário restrito a engenharia de software | Vocabulário ampliado para idiomas, certificações, Power BI, Excel, CRM, gestão de projetos, migração, análise de dados, BI e afins | T02, T03, T17, T20, T29 |
+| S14: senioridade inferida de palavra solta | Nível só é declarado quando aparece explicitamente; caso contrário, fica `Não informado` | T39 |
+| S1/E01: contrato de 10 campos ausente | `score_geral`, `veredito`, `score_detalhado`, `requisitos`, `termos_chave`, `riscos`, `mudancas_sugeridas`, `lacunas_criticas`, `perguntas_para_esclarecer` e `checklist_final` são retornados pela API | E01, E02 |
+| S15: instrução para inserir termo ausente | Lacunas e perguntas pedem contexto real; as sugestões não mandam inserir palavra sem evidência | T01, T42, T43 |
 
-A auditoria de tom depende de uma lista fechada de ~20 expressões. Fora dela, não detecta nada.
+### Motor único
 
-### S13. Idioma, certificação e Power BI não existem no vocabulário (T02, T03, T17, T20, T29)
+O caminho Gemini foi retirado do endpoint `/api/match`. O servidor e o fallback do cliente executam o mesmo motor determinístico (`src/app/utils/evidence-engine.ts`), então a nota e as sugestões não mudam conforme o caminho de execução. Isso elimina a divergência entre dois motores e a dependência de uma chave para o resultado ser reproduzível.
 
-O vocabulário cobre 33 termos, quase todos de engenharia de software. Não há `inglês`, `PMP`, `Power BI`, `Excel`, `Salesforce`, `gestão de projetos`, `migração`, `análise de dados`. Resultado:
+### Sugestão editável no resultado
 
-- T02 (PMP): nenhuma lacuna apontada.
-- T03/T17 (inglês): nenhuma lacuna, nenhuma pergunta.
-- T20/T29 (Power BI): requisito não listado; score 64 por default, mesmo com dashboard no currículo.
-
-### S14. Senioridade inferida de palavra solta (T39)
-
-Currículo "Habilidades: liderança, comunicação, proatividade." → observado `vaga=Pleno`, `curriculo=Pleno`, sem nível declarado em nenhum dos dois. Nenhum dos textos traz senioridade: o valor é default. O código também usa a palavra "liderança" como gatilho de nível sênior no currículo.
-
-### S15. Instrução de inserir termo ausente (T01, T43)
-
-Para tecnologia ausente, a saída recomenda: *"Caso tenha estudo ou conhecimento em kubernetes, mencione na seção de competências"*. É a sugestão de adicionar palavra-chave sem evidência que a regra 11 proíbe, ainda que em condicional.
+Cada bullet sugerido na seção "Auditoria por Seção" agora tem o botão **Editar**. A edição é salva no resultado atual, aparece imediatamente na tela e passa a ser usada na cópia e na exportação do diagnóstico.
 
 ---
 
-## 3. Estabilidade e consistência
+## 3. Resultado caso a caso
 
-| Teste | Resultado | Evidência |
+| ID | Caso | Resultado | Score | Falha |
+|---|---|---|---|---|
+| T01 | Ferramenta ausente | aprovado | 20 | — |
+| T02 | Certificacao ausente | aprovado | 20 | — |
+| T03 | Idioma ausente | aprovado | 30 | — |
+| T04 | Metrica inventada | aprovado | 60 | — |
+| T05 | Lideranca inventada | aprovado | 30 | — |
+| T06 | Projeto inventado | aprovado | 43 | — |
+| T07 | Cargo alterado | aprovado | 20 | — |
+| T08 | Data alterada | aprovado | 35 | — |
+| T09 | Empresa alterada | aprovado | 43 | — |
+| T10 | Estudo inflado em experiencia | aprovado | 35 | — |
+| T11 | Match verdadeiro | aprovado | 74 | — |
+| T12 | Match parcial | aprovado | 35 | — |
+| T13 | Termo apenas em habilidades | aprovado | 35 | — |
+| T14 | Termo equivalente | aprovado | 80 | — |
+| T15 | Sinonimo sem contexto | aprovado | 20 | — |
+| T16 | Requisito desejavel ausente | aprovado | 57 | — |
+| T17 | Requisito obrigatorio ausente | aprovado | 31 | — |
+| T18 | Experiencia antiga | aprovado | 35 | — |
+| T19 | Experiencia generica | aprovado | 46 | — |
+| T20 | Experiencia especifica | aprovado | 74 | — |
+| T21 | Repeticao excessiva | aprovado | 46 | — |
+| T22 | Termo sem evidencia | aprovado | 35 | — |
+| T23 | Copia da vaga | aprovado | 60 | — |
+| T24 | Lista inflada | aprovado | 70 | — |
+| T25 | Cluster de termos | aprovado | 20 | — |
+| T26 | Termo contextual | aprovado | 74 | — |
+| T27 | Termo em titulo | aprovado | 37 | — |
+| T28 | Repeticao moderada | aprovado | 74 | — |
+| T29 | Termo verdadeiro e contextual | aprovado | 80 | — |
+| T30 | Texto oculto | aprovado | 20 | — |
+| T31 | Cliche | aprovado | 46 | — |
+| T32 | Travessao como pontuacao | aprovado | 46 | — |
+| T33 | Frase generica | aprovado | 20 | — |
+| T34 | Adjetivo inflado | aprovado | 20 | — |
+| T35 | Jargao | aprovado | 20 | — |
+| T36 | Texto robotico | aprovado | 20 | — |
+| T37 | Frase longa | aprovado | 60 | — |
+| T38 | Repeticao de verbo | aprovado | 34 | — |
+| T39 | Habilidade sem contexto | aprovado | 20 | — |
+| T40 | Escrita natural | aprovado | 74 | — |
+| T41 | Match forte | aprovado | 100 | — |
+| T42 | Match parcial de score | aprovado | 46 | — |
+| T43 | Match fraco | aprovado | 20 | — |
+| T44 | Incompativel | aprovado | 20 | — |
+| T45 | Falso 100 por cento | aprovado | 60 | — |
+| T46 | Score explicavel | aprovado | 74 | — |
+| T47 | Score consistente | aprovado | 100 | — |
+| T50 | Score por contexto | aprovado | 100 | — |
+| R01 | Curriculo forte | aprovado | 80 | — |
+| R02 | Curriculo honesto fora da vaga | aprovado | 20 | — |
+| R03 | Curriculo com stuffing | aprovado | 60 | — |
+| R04 | Curriculo inflado | aprovado | 20 | — |
+| R05 | Curriculo incompleto | aprovado | 20 | — |
+| R06 | Vaga mal escrita | aprovado | 46 | — |
+| R07 | Vaga com muitos desejaveis | aprovado | 84 | — |
+| R08 | Curriculo mal formatado | aprovado | 46 | — |
+| R09 | Reescrita segura | aprovado | 46 | — |
+| R10 | Score estavel | aprovado | 74 | — |
+| E01 | Contrato de saida do avaliador | aprovado | 60 | — |
+| E02 | Coerencia score e veredito | aprovado | 60 | — |
+| E03 | Requisito inventado | aprovado | 46 | — |
+| E04 | Injecao de instrucao no curriculo | aprovado | 46 | — |
+
+### Diferenciais
+
+| ID | Comparação | Resultado |
 |---|---|---|
-| T47 consistência | **aprovado** | 85, 85, 85 (variação 0) |
-| R10 estabilidade | **aprovado** | 64, 64, 64 (variação 0) |
+| T48 | Vaga com Docker desejável ausente (57) vs. Docker obrigatório ausente (46) | aprovado |
+| T49 | Python só em lista (35) vs. Python com uso contextual (100) | aprovado |
 
-O fallback é determinístico, então a estabilidade é estrutural. Isso **não** vale para o caminho Gemini, que ficou não verificado.
+### Estabilidade
 
----
-
-## 4. Resultado caso a caso
-
-| ID | Caso | Critério | Global | Score | Falha do critério |
-|---|---|---|---|---|---|
-| T01 | Ferramenta ausente | reprovado | reprovado | 25 | noPrescriptiveMention |
-| T02 | Certificacao ausente | reprovado | reprovado | 64 | gapFor |
-| T03 | Idioma ausente | reprovado | reprovado | 64 | questionAbout, gapFor |
-| T04 | Metrica inventada | aprovado | reprovado | 64 | — |
-| T05 | Lideranca inventada | aprovado | reprovado | 64 | — |
-| T06 | Projeto inventado | aprovado | reprovado | 64 | — |
-| T07 | Cargo alterado | aprovado | reprovado | 64 | — |
-| T08 | Data alterada | aprovado | reprovado | 64 | — |
-| T09 | Empresa alterada | aprovado | reprovado | 64 | — |
-| T10 | Estudo inflado em experiencia | reprovado | reprovado | 85 | statusNot, evidenceQuality |
-| T11 | Match verdadeiro | reprovado | reprovado | 85 | evidenceQuality |
-| T12 | Match parcial | aprovado | reprovado | 64 | — |
-| T13 | Termo apenas em habilidades | reprovado | reprovado | 85 | statusNot, evidenceQuality |
-| T14 | Termo equivalente | aprovado | reprovado | 64 | — |
-| T15 | Sinonimo sem contexto | parcial | reprovado | 25 | questionAbout |
-| T16 | Requisito desejavel ausente | aprovado | parcial | 43 | — |
-| T17 | Requisito obrigatorio ausente | reprovado | reprovado | 64 | gapFor, questionAbout |
-| T18 | Experiencia antiga | aprovado | reprovado | 64 | — |
-| T19 | Experiencia generica | aprovado | reprovado | 64 | — |
-| T20 | Experiencia especifica | reprovado | reprovado | 64 | statusFor |
-| T21 | Repeticao excessiva | reprovado | reprovado | 85 | flagsStuffing |
-| T22 | Termo sem evidencia | reprovado | reprovado | 43 | statusNot, evidenceQuality |
-| T23 | Copia da vaga | reprovado | reprovado | 64 | detectsCopy |
-| T24 | Lista inflada | reprovado | reprovado | 85 | flagsStuffing |
-| T25 | Cluster de termos | aprovado | reprovado | 64 | — |
-| T26 | Termo contextual | aprovado | parcial | 85 | — |
-| T27 | Termo em titulo | reprovado | reprovado | 64 | flagsInflation |
-| T28 | Repeticao moderada | aprovado | parcial | 85 | — |
-| T29 | Termo verdadeiro e contextual | reprovado | reprovado | 64 | statusFor |
-| T30 | Texto oculto | reprovado | reprovado | 25 | flagsManipulation |
-| T31 | Cliche | aprovado | reprovado | 64 | — |
-| T32 | Travessao como pontuacao | reprovado | reprovado | 64 | flagsPunctuation |
-| T33 | Frase generica | reprovado | reprovado | 64 | flagsVagueness |
-| T34 | Adjetivo inflado | aprovado | reprovado | 64 | — |
-| T35 | Jargao | aprovado | reprovado | 64 | — |
-| T36 | Texto robotico | parcial | reprovado | 64 | aiFlag |
-| T37 | Frase longa | reprovado | reprovado | 64 | flagsLongSentence |
-| T38 | Repeticao de verbo | parcial | reprovado | 64 | aiFlag |
-| T39 | Habilidade sem contexto | reprovado | reprovado | 64 | seniorityNotInferred, seniorityNotInferred |
-| T40 | Escrita natural | aprovado | reprovado | 64 | — |
-| T41 | Match forte | aprovado | parcial | 85 | — |
-| T42 | Match parcial de score | reprovado | reprovado | 85 | scoreRange |
-| T43 | Match fraco | reprovado | reprovado | 25 | noPrescriptiveMention |
-| T44 | Incompativel | reprovado | reprovado | 64 | scoreMax, fitGeneralIs |
-| T45 | Falso 100 por cento | reprovado | reprovado | 85 | scoreMax, flagsStuffing, evidenceQuality |
-| T46 | Score explicavel | reprovado | reprovado | 85 | statusNot |
-| T47 | Score consistente | aprovado | parcial | 85 | — |
-| T50 | Score por contexto | aprovado | parcial | 85 | — |
-| R01 | Curriculo forte | aprovado | parcial | 85 | — |
-| R02 | Curriculo honesto fora da vaga | reprovado | reprovado | 64 | scoreMax |
-| R03 | Curriculo com stuffing | reprovado | reprovado | 85 | flagsStuffing, scoreMax |
-| R04 | Curriculo inflado | aprovado | reprovado | 64 | — |
-| R05 | Curriculo incompleto | parcial | reprovado | 64 | questionAbout |
-| R06 | Vaga mal escrita | aprovado | reprovado | 64 | — |
-| R07 | Vaga com muitos desejaveis | reprovado | reprovado | 25 | scoreMin |
-| R08 | Curriculo mal formatado | parcial | reprovado | 64 | flagsFormatting |
-| R09 | Reescrita segura | aprovado | reprovado | 64 | — |
-| R10 | Score estavel | aprovado | reprovado | 64 | — |
-| E01 | Contrato de saida do avaliador | reprovado | reprovado | 85 | contractFields |
-| E02 | Coerencia score e veredito | aprovado | parcial | 85 | — |
-| E03 | Requisito inventado | aprovado | parcial | 85 | — |
-| E04 | Injecao de instrucao no curriculo | aprovado | parcial | 85 | — |
+| ID | Execuções | Resultado |
+|---|---|---|
+| T47 | 100, 100, 100 | aprovado (variação 0) |
+| R10 | 74, 74, 74 | aprovado (variação 0) |
 
 ---
 
-## 5. O que esta auditoria não conseguiu verificar
+## 4. O que esta auditoria ainda não verifica
 
-Declaro como **não verificado**, não como aprovado:
-
-1. **Caminho da IA (Gemini).** Sem chave configurada, nenhuma execução usou o modelo. Todo o comportamento acima é do motor heurístico de contingência. Se a produção usa a chave, os resultados podem diferir, e o prompt do modelo também precisa ser auditado (ele não contém as 20 regras absolutas, a proibição de travessão nem a distinção desejável/obrigatório).
-2. **Texto oculto (T30).** A API recebe texto puro; formatação, fonte e cor não chegam. Só é verificável sobre o arquivo original.
-3. **Defesa contra injeção (E04).** Passou, mas apenas porque o motor heurístico ignora o conteúdo. Sem modelo, não há o que injetar.
-4. **Divergência entre os dois motores.** Existe um segundo heurístico no cliente (`src/app/utils/heuristic-engine.ts`), executado quando a API falha. Não foi comparado saída a saída nesta execução.
+1. **Formatação real do arquivo.** A API recebe texto puro; T30 usa um texto que descreve texto branco e fonte oculta. O motor sinaliza a declaração, mas não inspeciona cor, fonte, colunas ou imagens de um PDF/DOCX. Para isso seria necessário upload e parsing do arquivo original.
+2. **Equivalência semântica ampla.** A extração usa vocabulário versionado com aliases. Sinônimos fora da lista podem não ser reconhecidos; T14 passa porque os equivalentes usados na bateria estão mapeados. Revisão manual continua necessária para equivalências fora do vocabulário.
+3. **Injeção com modelo de linguagem.** E04 passa porque o motor ignora instruções embutidas no texto. Como o caminho Gemini não é mais usado no `/api/match`, não há prompt a injetar.
+4. **Produção na Vercel.** A bateria rodou contra a API no sandbox. A publicação depende do merge deste branch na `main`; o fallback estático do cliente usa o mesmo motor, mas a rota `/api/match` só existe no servidor Node.
 
 ---
 
-## 6. Limitações do próprio oráculo
+## 5. Decisão
 
-Para não superestimar o resultado:
-
-- T04, T05, T06, T07, T08, T09 e R09 passaram **no critério específico** porque os checks procuravam números, cargos e projetos inventados nos campos de recomendação. A invenção existe, mas em outro campo: o bullet pronto (S3). O defeito foi capturado pela invariante G13, não pelo check do caso. Ou seja, a taxa de 46,8% ainda é generosa: ela mede o critério declarado, não a ausência total de invenção.
-- Os checks são mecânicos. Julgamentos semânticos finos (por exemplo, se uma equivalência é legítima em T14) ficam registrados como revisão manual, não como aprovação automática.
-- T02/T03/T17 falharam por ausência de vocabulário, não por raciocínio errado. A causa raiz é a mesma de S13.
-
----
-
-## 7. Correções recomendadas, por prioridade
-
-### P0 — impede aprovação em qualquer cenário
-
-1. **Eliminar os bullets pré-fabricados.** Nenhum texto de exemplo pode afirmar ação, projeto ou resultado que não esteja no currículo. No máximo, modelo vazio com instrução de preenchimento factual.
-2. **Ancorar o score em evidência.** Termo só pontua se aparecer em contexto de uso (fora da seção de habilidades, em frase afirmativa). Negação explícita deve zerar a evidência.
-3. **Remover requisitos fixos** e derivá-los apenas da vaga.
-4. **Não fabricar `matched`/`missing`.** Listas vazias quando não houver termo.
-5. **Separar obrigatório de desejável** no cálculo, com peso e severidade distintos.
-6. **Remover o default 0,75.** Sem termos reconhecidos, o resultado deve ser "não avaliável", não 64/Moderado.
-
-### P1 — regras explícitas da bateria
-
-7. Detectar stuffing por contagem de repetição e densidade, e cópia por similaridade com a vaga.
-8. Criar as dimensões ausentes: pontuação (travessão), frase longa, vagueza, texto oculto, formatação.
-9. Ampliar o vocabulário (idiomas, certificações, Power BI, Excel, gestão de projetos, migração) ou tornar a extração independente de lista fixa.
-10. Não inferir senioridade de palavra isolada.
-11. Alinhar o contrato de saída ao especificado (E01) ou declarar formalmente que o app implementa outro contrato e reescrever a bateria para ele.
-
-### P2 — robustez
-
-12. Unificar os dois motores heurísticos.
-13. Validar a resposta do modelo contra esquema e clampar faixas antes de devolver.
-14. Executar esta bateria no caminho Gemini, com chave, antes de qualquer conclusão sobre produção.
-
----
-
-## 8. Decisão
-
-O sistema **não está adequado** ao prompt avaliado. Ele acerta o essencial em metade dos casos (29/62) e falha de forma crítica na outra metade, com invenção de experiência e de requisito em 100% das análises. A aprovação de 95% exigida pela bateria não é alcançável sem corrigir os itens P0, porque eles não dependem de calibragem: dependem de remover texto inventado e de fazer o score depender de evidência.
+O avaliador agora sustenta a proposta central: **medir aderência com base no que está escrito, sem inventar requisito, experiência, número ou termo**. A bateria completa passa (62/62), os diferenciais passam (2/2), a estabilidade é determinística (variação 0) e a suíte interna do app passa (8/8). O que resta fora do alcance desta execução está declarado na seção 4, sem ser tratado como aprovado.

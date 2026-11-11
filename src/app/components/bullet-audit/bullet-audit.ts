@@ -92,28 +92,61 @@ import { AtsService } from '../../services/ats.service';
                   </span>
                 </div>
 
-                <p class="text-xs sm:text-sm font-mono text-emerald-300 leading-relaxed break-words bg-black/30 p-2.5 rounded-lg border border-zinc-800/80">
-                  - {{ getBulletText(item) }}
-                </p>
+                @if (editingIndex() === $index) {
+                  <textarea
+                    [id]="'edit-bullet-' + $index"
+                    [value]="draft()"
+                    (input)="onDraftInput($event)"
+                    rows="3"
+                    class="w-full text-xs sm:text-sm font-mono text-emerald-200 leading-relaxed bg-black/50 p-2.5 rounded-lg border border-emerald-500/50 focus:border-emerald-400 focus:outline-none resize-y"></textarea>
+                  <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      (click)="cancelEdit()"
+                      class="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer">
+                      <mat-icon class="text-xs">close</mat-icon>
+                      <span>{{ lang() === 'pt' ? 'Cancelar' : 'Cancel' }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="saveEdit($index)"
+                      class="px-3.5 py-1.5 rounded-lg bg-emerald-400 hover:bg-emerald-300 text-zinc-900 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                      <mat-icon class="text-xs">check</mat-icon>
+                      <span>{{ lang() === 'pt' ? 'Salvar edição' : 'Save edit' }}</span>
+                    </button>
+                  </div>
+                } @else {
+                  <p class="text-xs sm:text-sm font-mono text-emerald-300 leading-relaxed break-words bg-black/30 p-2.5 rounded-lg border border-zinc-800/80">
+                    - {{ getBulletText(item) }}
+                  </p>
 
-                <!-- Actions: Copy & Load into Scaffold -->
-                <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
-                  <button
-                    type="button"
-                    (click)="loadIntoScaffold(item)"
-                    class="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer">
-                    <mat-icon class="text-xs">tune</mat-icon>
-                    <span>{{ lang() === 'pt' ? 'Ajustar no Gerador' : 'Edit in Generator' }}</span>
-                  </button>
+                  <!-- Actions: Edit, Copy & Load into Scaffold -->
+                  <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      (click)="startEdit($index, item)"
+                      class="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer">
+                      <mat-icon class="text-xs">edit</mat-icon>
+                      <span>{{ lang() === 'pt' ? 'Editar' : 'Edit' }}</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    (click)="copyBullet(getBulletText(item), $index)"
-                    class="px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-100 text-zinc-900 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs">
-                    <mat-icon class="text-xs">{{ copiedIndex() === $index ? 'check' : 'content_copy' }}</mat-icon>
-                    <span>{{ copiedIndex() === $index ? (lang() === 'pt' ? 'Copiado!' : 'Copied!') : (lang() === 'pt' ? 'Copiar Bullet' : 'Copy Bullet') }}</span>
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      (click)="loadIntoScaffold(item)"
+                      class="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer">
+                      <mat-icon class="text-xs">tune</mat-icon>
+                      <span>{{ lang() === 'pt' ? 'Ajustar no Gerador' : 'Edit in Generator' }}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="copyBullet(getBulletText(item), $index)"
+                      class="px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-100 text-zinc-900 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                      <mat-icon class="text-xs">{{ copiedIndex() === $index ? 'check' : 'content_copy' }}</mat-icon>
+                      <span>{{ copiedIndex() === $index ? (lang() === 'pt' ? 'Copiado!' : 'Copied!') : (lang() === 'pt' ? 'Copiar Bullet' : 'Copy Bullet') }}</span>
+                    </button>
+                  </div>
+                }
               </div>
             }
 
@@ -131,14 +164,38 @@ export class BulletAuditComponent {
   lang = computed(() => this.atsService.uiLanguage());
 
   copiedIndex = signal<number | null>(null);
+  editingIndex = signal<number | null>(null);
+  draft = signal<string>('');
 
   getBulletText(item: SectionRecommendation): string {
     if (item.readyBulletTemplate && item.readyBulletTemplate.trim().length > 0) {
       return item.readyBulletTemplate.trim().replace(/^[-•*]\s*/, '');
     }
-    // Fallback based on suggested action
-    const verb = item.targetActionVerb || 'Configurei';
-    return `${verb} e implementei soluções técnicas aplicando as diretrizes da vaga, otimizando processos em [+X%] e atendendo [+Y usuários].`;
+    // Sem evidência não há bullet pronto: entrega apenas o modelo para preencher.
+    return '[verbo no passado] [entrega real que você fez], usando [ferramenta que você realmente utilizou], com [resultado que você consegue comprovar].';
+  }
+
+  startEdit(index: number, item: SectionRecommendation): void {
+    this.editingIndex.set(index);
+    this.draft.set(this.getBulletText(item));
+  }
+
+  onDraftInput(event: Event): void {
+    const target = event.target as HTMLTextAreaElement | null;
+    this.draft.set(target?.value ?? '');
+  }
+
+  saveEdit(index: number): void {
+    const text = this.draft().trim();
+    if (text.length === 0) return;
+    this.atsService.updateSectionBullet(index, text);
+    this.editingIndex.set(null);
+    this.draft.set('');
+  }
+
+  cancelEdit(): void {
+    this.editingIndex.set(null);
+    this.draft.set('');
   }
 
   copyBullet(text: string, index: number): void {

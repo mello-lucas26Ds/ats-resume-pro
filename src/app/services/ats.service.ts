@@ -326,6 +326,21 @@ export class AtsService {
     this.scaffoldPrefillData.set({ verb, stack, metric });
   }
 
+  /**
+   * Salva a edição manual do bullet sugerido no resultado atual.
+   * A alteração fica no estado da análise (cópia e exportação usam o texto editado).
+   */
+  updateSectionBullet(index: number, text: string): void {
+    const current = this.analysisResult();
+    if (!current) return;
+    this.analysisResult.set({
+      ...current,
+      sectionRecommendations: current.sectionRecommendations.map((item, position) =>
+        position === index ? { ...item, readyBulletTemplate: text } : item,
+      ),
+    });
+  }
+
   // TOGGLE 1 Action: Switches UI Language ONLY (without wiping or forcing custom user resume text)
   setUiLanguage(lang: 'pt' | 'en'): void {
     this.uiLanguage.set(lang);

@@ -34,6 +34,16 @@ Opções por ambiente:
 
 Os invariantes `G6` e `G12` são marcados como sistêmicos: entram no relatório, mas não decidem o veredito do caso, para não mascarar o critério que o caso mede.
 
-## Limitação conhecida
+## Motor testado
 
-Sem `GEMINI_API_KEY`, a execução usa o motor heurístico. Os resultados não descrevem o caminho da IA.
+Desde a correção dos defeitos P0 existe **um único motor** no caminho de análise
+(`src/app/utils/evidence-engine.ts`), usado tanto pela API quanto pelo fallback do cliente.
+Não há caminho alternativo de IA em `/api/match`, então a execução da bateria descreve
+exatamente o comportamento entregue.
+
+## Resultado registrado
+
+`RELATORIO.md` e `out/consolidado.json` registram a última execução: 62 de 62 casos
+aprovados, diferenciais T48/T49 aprovados e estabilidade T47/R10 com variação 0. As
+limitações que continuam fora do alcance da bateria (formatação real de arquivo e
+equivalência semântica fora do vocabulário) estão declaradas no relatório.

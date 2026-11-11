@@ -84,7 +84,8 @@ ${res.gapsAnalysis.map((g, i) => `${i + 1}. ${g.gap} [${g.severity}]
 ${res.sectionRecommendations.map((s, i) => `${i + 1}. ${s.sectionName}
    - Ajuste necessário: ${s.currentIssue}
    - Fórmula sugerida: ${s.suggestedAction}
-   - Onde quantificar: ${s.metricOpportunity}`).join('\n\n')}
+   - Onde quantificar: ${s.metricOpportunity}
+   - Bullet sugerido (editável): ${s.readyBulletTemplate || 'não gerado'}`).join('\n\n')}
 
 ## 7. PERGUNTAS ESTRATÉGICAS DE VALIDAÇÃO
 ${res.strategicQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}

@@ -1,50 +1,42 @@
 {
-  "executadoEm": "2026-11-11T03:48:24.769Z",
+  "executadoEm": "2026-11-11T04:19:54.177Z",
   "casos": [
     {
       "id_teste": "T48",
       "nome_teste": "Peso de desejavel",
-      "resultado": "reprovado",
-      "score_sistema": 43,
+      "resultado": "aprovado",
+      "score_sistema": 46,
       "score_esperado": null,
       "diferenca_permitida": null,
-      "motivo": "O sistema nao distingue: A=43, B=43.",
-      "falhas_encontradas": [
-        "esperado score com desejavel ausente > score com obrigatorio ausente; observado A=43 B=43"
-      ],
+      "motivo": "O sistema distingue os dois cenarios.",
+      "falhas_encontradas": [],
       "evidencias": [
-        "A=43 (Baixo)",
-        "B=43 (Baixo)"
+        "A=57 (Moderado)",
+        "B=46 (Moderado)"
       ],
-      "correcoes_necessarias": [
-        "Diferenciar peso e evidencia no calculo do score."
-      ],
+      "correcoes_necessarias": [],
       "saida": {
-        "a": "Aderência de 43% com 1 de 2 requisitos-chave identificados no currículo.",
-        "b": "Aderência de 43% com 1 de 2 requisitos-chave identificados no currículo."
+        "a": "Diagnóstico de aderência: 57 de 100, com 0 requisito(s) comprovado(s), 2 parcial(is) e 1 sem evidência.",
+        "b": "Diagnóstico de aderência: 46 de 100, com 0 requisito(s) comprovado(s), 2 parcial(is) e 1 sem evidência."
       }
     },
     {
       "id_teste": "T49",
       "nome_teste": "Score por palavra-chave",
-      "resultado": "reprovado",
-      "score_sistema": 85,
+      "resultado": "aprovado",
+      "score_sistema": 100,
       "score_esperado": null,
       "diferenca_permitida": null,
-      "motivo": "O sistema nao distingue: A=85, B=85.",
-      "falhas_encontradas": [
-        "esperado score com evidencia contextual > score apenas com termo; observado A=85 B=85"
-      ],
+      "motivo": "O sistema distingue os dois cenarios.",
+      "falhas_encontradas": [],
       "evidencias": [
-        "A=85 (Forte)",
-        "B=85 (Forte)"
+        "A=34 (Baixo)",
+        "B=100 (Forte)"
       ],
-      "correcoes_necessarias": [
-        "Diferenciar peso e evidencia no calculo do score."
-      ],
+      "correcoes_necessarias": [],
       "saida": {
-        "a": "Aderência de 85% com 1 de 1 requisitos-chave identificados no currículo.",
-        "b": "Aderência de 85% com 1 de 1 requisitos-chave identificados no currículo."
+        "a": "Diagnóstico de aderência: 34 de 100, com 0 requisito(s) comprovado(s), 1 parcial(is) e 2 sem evidência.",
+        "b": "Diagnóstico de aderência: 100 de 100, com 3 requisito(s) comprovado(s), 0 parcial(is) e 0 sem evidência."
       }
     }
   ]

@@ -76,6 +76,26 @@ export interface AiToneAudit {
   generalAdvice: string;
 }
 
+export interface ScoreBreakdown {
+  obrigatorios: number;
+  desejaveis: number;
+  evidencia: number;
+  riscos: number;
+}
+
+export interface ContractRequirement {
+  requisito: string;
+  importancia: RequirementImportance;
+  status: MatchStatus;
+  evidencia: string;
+}
+
+export interface ContractChange {
+  onde: string;
+  o_que: string;
+  como: string;
+}
+
 export interface AtsAnalysisResult {
   atsScore: number; // 0-100
   fitGeneral: FitLevel;
@@ -88,6 +108,18 @@ export interface AtsAnalysisResult {
   aiToneAudit: AiToneAudit;
   strategicQuestions: string[];
   timestamp: string;
+
+  // Contrato estruturado do avaliador (10 campos)
+  score_geral: number;
+  veredito: string;
+  score_detalhado: ScoreBreakdown;
+  requisitos: ContractRequirement[];
+  termos_chave: { encontrados: string[]; ausentes: string[] };
+  riscos: string[];
+  mudancas_sugeridas: ContractChange[];
+  lacunas_criticas: string[];
+  perguntas_para_esclarecer: string[];
+  checklist_final: string[];
 }
 
 export interface AnalyzePayload {
