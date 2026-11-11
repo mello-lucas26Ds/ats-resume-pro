@@ -1,0 +1,51 @@
+{
+  "executadoEm": "2026-11-11T03:48:24.769Z",
+  "casos": [
+    {
+      "id_teste": "T48",
+      "nome_teste": "Peso de desejavel",
+      "resultado": "reprovado",
+      "score_sistema": 43,
+      "score_esperado": null,
+      "diferenca_permitida": null,
+      "motivo": "O sistema nao distingue: A=43, B=43.",
+      "falhas_encontradas": [
+        "esperado score com desejavel ausente > score com obrigatorio ausente; observado A=43 B=43"
+      ],
+      "evidencias": [
+        "A=43 (Baixo)",
+        "B=43 (Baixo)"
+      ],
+      "correcoes_necessarias": [
+        "Diferenciar peso e evidencia no calculo do score."
+      ],
+      "saida": {
+        "a": "Aderência de 43% com 1 de 2 requisitos-chave identificados no currículo.",
+        "b": "Aderência de 43% com 1 de 2 requisitos-chave identificados no currículo."
+      }
+    },
+    {
+      "id_teste": "T49",
+      "nome_teste": "Score por palavra-chave",
+      "resultado": "reprovado",
+      "score_sistema": 85,
+      "score_esperado": null,
+      "diferenca_permitida": null,
+      "motivo": "O sistema nao distingue: A=85, B=85.",
+      "falhas_encontradas": [
+        "esperado score com evidencia contextual > score apenas com termo; observado A=85 B=85"
+      ],
+      "evidencias": [
+        "A=85 (Forte)",
+        "B=85 (Forte)"
+      ],
+      "correcoes_necessarias": [
+        "Diferenciar peso e evidencia no calculo do score."
+      ],
+      "saida": {
+        "a": "Aderência de 85% com 1 de 1 requisitos-chave identificados no currículo.",
+        "b": "Aderência de 85% com 1 de 1 requisitos-chave identificados no currículo."
+      }
+    }
+  ]
+}

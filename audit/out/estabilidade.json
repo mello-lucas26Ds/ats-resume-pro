@@ -1,0 +1,33 @@
+{
+  "executadoEm": "2026-11-11T03:48:26.939Z",
+  "casos": [
+    {
+      "id_teste": "T47",
+      "nome_teste": "Score consistente",
+      "resultado": "aprovado",
+      "score_sistema": 85,
+      "score_esperado": null,
+      "diferenca_permitida": 3,
+      "motivo": "Variacao de 0 ponto(s) em 3 execucoes.",
+      "falhas_encontradas": [],
+      "evidencias": [
+        "scores: 85, 85, 85"
+      ],
+      "correcoes_necessarias": []
+    },
+    {
+      "id_teste": "R10",
+      "nome_teste": "Score estavel",
+      "resultado": "aprovado",
+      "score_sistema": 64,
+      "score_esperado": null,
+      "diferenca_permitida": 3,
+      "motivo": "Variacao de 0 ponto(s) em 3 execucoes.",
+      "falhas_encontradas": [],
+      "evidencias": [
+        "scores: 64, 64, 64"
+      ],
+      "correcoes_necessarias": []
+    }
+  ]
+}
